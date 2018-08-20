@@ -9,14 +9,14 @@ import java.util.ArrayList;
  * Created by bendaf on 2018. 08. 20. BakingApp.
  */
 
-public class Receipe implements Parcelable {
+public class Recipe implements Parcelable {
 
     private int id;
     private String name;
     private ArrayList<Ingredient> ingredients;
     private ArrayList<Step> steps;
 
-    public Receipe() {
+    public Recipe() {
     }
 
     public int getId() {
@@ -63,20 +63,20 @@ public class Receipe implements Parcelable {
         dest.writeTypedList(this.steps);
     }
 
-    private Receipe(Parcel in) {
+    private Recipe(Parcel in) {
         this.id = in.readInt();
         this.name = in.readString();
         this.ingredients = in.createTypedArrayList(Ingredient.CREATOR);
         this.steps = in.createTypedArrayList(Step.CREATOR);
     }
 
-    public static final Parcelable.Creator<Receipe> CREATOR = new Parcelable.Creator<Receipe>() {
-        @Override public Receipe createFromParcel(Parcel source) {
-            return new Receipe(source);
+    public static final Parcelable.Creator<Recipe> CREATOR = new Parcelable.Creator<Recipe>() {
+        @Override public Recipe createFromParcel(Parcel source) {
+            return new Recipe(source);
         }
 
-        @Override public Receipe[] newArray(int size) {
-            return new Receipe[size];
+        @Override public Recipe[] newArray(int size) {
+            return new Recipe[size];
         }
     };
 }
