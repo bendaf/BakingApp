@@ -7,7 +7,7 @@ import android.os.Parcelable;
  * Created by bendaf on 2018. 08. 20. BakingApp.
  */
 
-class Step implements Parcelable {
+public class Step implements Parcelable {
     private int id;
     private String shortDescription;
     private String description;

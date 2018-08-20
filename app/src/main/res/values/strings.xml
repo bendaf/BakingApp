@@ -2,4 +2,6 @@
     <string name="app_name">BakingApp</string>
     <string name="error_recipes_download">Failed to download recipes</string>
     <string name="error_recipes_string_null">Failed to parse recipes string</string>
+    <string name="title_step_list">Steps</string>
+    <string name="title_step_detail">Step Detail</string>
 </resources>
