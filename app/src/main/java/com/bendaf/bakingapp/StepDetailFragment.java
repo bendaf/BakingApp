@@ -2,6 +2,7 @@ package com.bendaf.bakingapp;
 
 import android.app.Activity;
 import android.databinding.DataBindingUtil;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -12,6 +13,14 @@ import android.view.ViewGroup;
 
 import com.bendaf.bakingapp.Model.Step;
 import com.bendaf.bakingapp.databinding.StepDetailBinding;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 
 /**
  * A fragment representing a single Step detail screen.
@@ -30,6 +39,7 @@ public class StepDetailFragment extends Fragment {
      * The dummy content this fragment is presenting.
      */
     private Step mStep;
+    private SimpleExoPlayer mPlayer;
 
     StepDetailBinding mBinding;
 
@@ -66,8 +76,26 @@ public class StepDetailFragment extends Fragment {
         // Show the dummy content as text in a TextView.
         if(mStep != null) {
             mBinding.tvStepInstructions.setText(mStep.getDescription());
+            if(mStep.getVideoURL().equals("") && mStep.getThumbnailURL().equals("")) {
+                mBinding.playerStep.setVisibility(View.GONE);
+            } else {
+                mPlayer = ExoPlayerFactory.newSimpleInstance(getContext(),
+                        new DefaultTrackSelector(new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter())));
+                mBinding.playerStep.setPlayer(mPlayer);
+                Uri videoUrl = Uri.parse(mStep.getVideoURL().equals("") ? mStep.getThumbnailURL() : mStep.getVideoURL());
+                MediaSource mediaSource = new ExtractorMediaSource.Factory(
+                        new DefaultHttpDataSourceFactory("UrlGetter")).createMediaSource(videoUrl);
+
+                mPlayer.prepare(mediaSource);
+                mPlayer.setPlayWhenReady(true);
+            }
         }
 
         return mBinding.getRoot();
+    }
+
+    @Override public void onDestroyView() {
+        if(mPlayer != null) mPlayer.release();
+        super.onDestroyView();
     }
 }
