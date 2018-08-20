@@ -15,6 +15,8 @@ public class Recipe implements Parcelable {
     private String name;
     private ArrayList<Ingredient> ingredients;
     private ArrayList<Step> steps;
+    private int servings;
+    private String image;
 
     public Recipe() {
     }
@@ -47,9 +49,24 @@ public class Recipe implements Parcelable {
         return steps;
     }
 
-
     public void setSteps(ArrayList<Step> steps) {
         this.steps = steps;
+    }
+
+    public int getServings() {
+        return servings;
+    }
+
+    public void setServings(int servings) {
+        this.servings = servings;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     @Override public int describeContents() {
@@ -61,6 +78,8 @@ public class Recipe implements Parcelable {
         dest.writeString(this.name);
         dest.writeTypedList(this.ingredients);
         dest.writeTypedList(this.steps);
+        dest.writeInt(this.servings);
+        dest.writeString(this.image);
     }
 
     private Recipe(Parcel in) {
@@ -68,9 +87,11 @@ public class Recipe implements Parcelable {
         this.name = in.readString();
         this.ingredients = in.createTypedArrayList(Ingredient.CREATOR);
         this.steps = in.createTypedArrayList(Step.CREATOR);
+        this.servings = in.readInt();
+        this.image = in.readString();
     }
 
-    public static final Parcelable.Creator<Recipe> CREATOR = new Parcelable.Creator<Recipe>() {
+    public static final Creator<Recipe> CREATOR = new Creator<Recipe>() {
         @Override public Recipe createFromParcel(Parcel source) {
             return new Recipe(source);
         }
