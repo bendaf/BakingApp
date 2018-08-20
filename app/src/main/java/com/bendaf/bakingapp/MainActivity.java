@@ -2,11 +2,17 @@ package com.bendaf.bakingapp;
 
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
 
 import com.bendaf.bakingapp.Model.Recipe;
 import com.bendaf.bakingapp.databinding.ActivityMainBinding;
+import com.bendaf.bakingapp.databinding.RecipeCardBinding;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -27,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding mBinding;
     private ArrayList<Recipe> mRecipes = new ArrayList<>();
+    private RecipeAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,9 +49,15 @@ public class MainActivity extends AppCompatActivity {
             @Override public void onResponse(Call call, Response response) throws IOException {
                 if(response.isSuccessful()) {
                     try {
+                        @SuppressWarnings("ConstantConditions")
                         String jsonString = response.body().string();
                         Gson gson = new Gson();
-                        mRecipes = new ArrayList<>(Arrays.asList(gson.fromJson(jsonString, Recipe[].class)));
+                        mRecipes.addAll(Arrays.asList(gson.fromJson(jsonString, Recipe[].class)));
+                        runOnUiThread(new Runnable() {
+                            @Override public void run() {
+                                mAdapter.notifyDataSetChanged();
+                            }
+                        });
 
                     } catch(NullPointerException | IllegalStateException e) {
                         Snackbar.make(mBinding.cordRoot, R.string.error_recipes_string_null, Snackbar.LENGTH_LONG).show();
@@ -52,6 +65,48 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        mBinding.recRecipes.setLayoutManager(new LinearLayoutManager(this));
+        mAdapter = new RecipeAdapter(mRecipes);
+        mBinding.recRecipes.setAdapter(mAdapter);
+    }
+
+    class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeVH> {
+        ArrayList<Recipe> mRecipes = new ArrayList<>();
+
+        RecipeAdapter(ArrayList<Recipe> recipes) {
+            this.mRecipes = recipes;
+        }
+
+        @NonNull @Override
+        public RecipeVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+            RecipeCardBinding binding = RecipeCardBinding.inflate(inflater, parent, false);
+            return new RecipeVH(binding);
+        }
+
+        @Override public void onBindViewHolder(@NonNull RecipeVH holder, int position) {
+            Recipe recipe = mRecipes.get(position);
+            holder.bind(recipe);
+        }
+
+        @Override public int getItemCount() {
+            return mRecipes.size();
+        }
+
+        class RecipeVH extends RecyclerView.ViewHolder {
+            private final RecipeCardBinding mRecipeBinding;
+
+            RecipeVH(RecipeCardBinding binding) {
+                super(binding.getRoot());
+                this.mRecipeBinding = binding;
+            }
+
+            void bind(Recipe recipe) {
+                mRecipeBinding.tvRecipeName.setText(recipe.getName());
+                mRecipeBinding.executePendingBindings();
+            }
+        }
     }
 
 }
