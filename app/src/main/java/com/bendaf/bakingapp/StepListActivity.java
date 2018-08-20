@@ -68,7 +68,7 @@ public class StepListActivity extends AppCompatActivity {
         }
 
         assert mRecipe != null;
-        mBinding.includeList.stepList.setAdapter(new SimpleItemRecyclerViewAdapter(this, mRecipe, mTwoPane));
+        mBinding.includeList.rvSteps.setAdapter(new SimpleItemRecyclerViewAdapter(this, mRecipe, mTwoPane));
     }
 
     @Override

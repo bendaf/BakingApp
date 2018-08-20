@@ -5,7 +5,7 @@
     tools:context="com.bendaf.bakingapp.StepListActivity">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/step_list"
+        android:id="@+id/rv_steps"
         android:name="com.bendaf.bakingapp.StepListFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

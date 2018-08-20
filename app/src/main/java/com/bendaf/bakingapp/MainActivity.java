@@ -1,6 +1,10 @@
 package com.bendaf.bakingapp;
 
+import android.app.PendingIntent;
+import android.appwidget.AppWidgetManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,6 +14,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RemoteViews;
 
 import com.bendaf.bakingapp.Model.Recipe;
 import com.bendaf.bakingapp.databinding.ActivityMainBinding;
@@ -29,26 +34,29 @@ import okhttp3.Response;
 public class MainActivity extends AppCompatActivity {
 
     public static final String RECIPES_URL = "https://d17h27t6h515a5.cloudfront.net/topher/2017/May/59121517_baking/baking.json";
-    // Used to access json url page and get response data.
-    private static OkHttpClient okHttpClient = new OkHttpClient();
+    public static final String PREFS_NAME = "com.bendaf.bakingapp";
+    public static final String PREFS_RECIPE = "recipe";
 
+    public static final String EXTRA_RECIPE = "recipe extra";
+    private static OkHttpClient okHttpClient = new OkHttpClient();
     private ActivityMainBinding mBinding;
     private ArrayList<Recipe> mRecipes = new ArrayList<>();
     private RecipeAdapter mAdapter;
-    public static final String EXTRA_RECIPE = "recipe extra";
+    private int mAppWidgetId = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
         Request request = new Request.Builder().url(RECIPES_URL).build();
         Call call = okHttpClient.newCall(request);
         call.enqueue(new Callback() {
-            @Override public void onFailure(Call call, IOException e) {
+            @Override public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Snackbar.make(mBinding.cordRoot, R.string.error_recipes_download, Snackbar.LENGTH_LONG).show();
             }
 
-            @Override public void onResponse(Call call, Response response) throws IOException {
+            @Override public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if(response.isSuccessful()) {
                     try {
                         @SuppressWarnings("ConstantConditions")
@@ -70,6 +78,12 @@ public class MainActivity extends AppCompatActivity {
 
         mAdapter = new RecipeAdapter(mRecipes);
         mBinding.recRecipes.setAdapter(mAdapter);
+
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        if(extras != null) {
+            mAppWidgetId = extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
+        }
     }
 
     class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeVH> {
@@ -95,8 +109,9 @@ public class MainActivity extends AppCompatActivity {
             return mRecipes.size();
         }
 
-        class RecipeVH extends RecyclerView.ViewHolder implements View.OnClickListener{
+        class RecipeVH extends RecyclerView.ViewHolder implements View.OnClickListener {
             private final SimpleListItemBinding mRecipeBinding;
+            private Recipe mRecipe;
 
             RecipeVH(SimpleListItemBinding binding) {
                 super(binding.getRoot());
@@ -104,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             void bind(Recipe recipe) {
+                mRecipe = recipe;
                 mRecipeBinding.tvName.setText(recipe.getName());
                 mRecipeBinding.executePendingBindings();
                 mRecipeBinding.cardItem.setOnClickListener(this);
@@ -111,9 +127,32 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override public void onClick(View view) {
-                Intent startStepListActivity = new Intent(MainActivity.this, StepListActivity.class);
-                startStepListActivity.putExtra(EXTRA_RECIPE, mRecipes.get((Integer) view.getTag()));
-                startActivity(startStepListActivity);
+                Context c = MainActivity.this;
+                if(mAppWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+                    Intent startStepListActivity = new Intent(c, StepListActivity.class);
+                    startStepListActivity.putExtra(EXTRA_RECIPE, mRecipe);
+                    startActivity(startStepListActivity);
+                } else {
+
+                    SharedPreferences.Editor e = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
+                    e.putString(PREFS_RECIPE, new Gson().toJson(mRecipe));
+                    e.apply();
+
+                    RemoteViews rw = new RemoteViews(c.getPackageName(),
+                            R.layout.ingredients_widget_provider);
+
+                    Intent startMainActivity = new Intent(c, MainActivity.class);
+                    rw.setOnClickPendingIntent(R.id.fl_container,
+                            PendingIntent.getActivity(c, 0, startMainActivity, 0));
+
+                    rw.setRemoteAdapter(R.id.lv_ingredients, new Intent(c, IngredientsWidget.class));
+                    AppWidgetManager.getInstance(MainActivity.this).updateAppWidget(mAppWidgetId, rw);
+
+                    Intent resultValue = new Intent();
+                    resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
+                    setResult(RESULT_OK, resultValue);
+                    finish();
+                }
             }
         }
     }

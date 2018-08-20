@@ -17,6 +17,10 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".StepListActivity"
@@ -36,6 +40,20 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bendaf.bakingapp.StepListActivity" />
         </activity>
+
+        <receiver android:name=".IngredientsWidgetProvider">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/ingredients_widget_info" />
+        </receiver>
+
+        <service
+            android:name=".IngredientsWidget"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
 
 </manifest>

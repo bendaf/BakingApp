@@ -7,7 +7,7 @@ import android.os.Parcelable;
  * Created by bendaf on 2018. 08. 20. BakingApp.
  */
 
-class Ingredient implements Parcelable {
+public class Ingredient implements Parcelable {
     private Double quantity;
     private String measure;
     private String ingredient;

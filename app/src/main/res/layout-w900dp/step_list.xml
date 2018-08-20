@@ -19,7 +19,7 @@
         android:orientation="horizontal"
         android:showDividers="middle">
 
-        <android.support.v7.widget.RecyclerView android:id="@+id/step_list"
+        <android.support.v7.widget.RecyclerView android:id="@+id/rv_steps"
             android:name="com.bendaf.bakingapp.StepListFragment"
             xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
