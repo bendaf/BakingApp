@@ -14,7 +14,8 @@
             android:id="@+id/rec_recipes"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layoutManager="LinearLayoutManager" />
+            app:layoutManager="GridLayoutManager"
+            app:spanCount="3"/>
 
     </android.support.design.widget.CoordinatorLayout>
 </layout>
