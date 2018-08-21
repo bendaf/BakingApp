@@ -5,6 +5,7 @@ import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -21,6 +22,8 @@ import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
+import com.squareup.picasso.Picasso;
 
 /**
  * A fragment representing a single Step detail screen.
@@ -34,6 +37,8 @@ public class StepDetailFragment extends Fragment {
      * represents.
      */
     public static final String EXTRA_STEP = "item_id";
+    private static final String PLAYER_POSITION = "player_pos";
+    private static final String PLAY_WHEN_REDY = "play_when_ready";
 
     /**
      * The dummy content this fragment is presenting.
@@ -76,26 +81,82 @@ public class StepDetailFragment extends Fragment {
         // Show the dummy content as text in a TextView.
         if(mStep != null) {
             mBinding.tvStepInstructions.setText(mStep.getDescription());
-            if(mStep.getVideoURL().equals("") && mStep.getThumbnailURL().equals("")) {
-                mBinding.playerStep.setVisibility(View.GONE);
-            } else {
-                mPlayer = ExoPlayerFactory.newSimpleInstance(getContext(),
-                        new DefaultTrackSelector(new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter())));
-                mBinding.playerStep.setPlayer(mPlayer);
-                Uri videoUrl = Uri.parse(mStep.getVideoURL().equals("") ? mStep.getThumbnailURL() : mStep.getVideoURL());
-                MediaSource mediaSource = new ExtractorMediaSource.Factory(
-                        new DefaultHttpDataSourceFactory("UrlGetter")).createMediaSource(videoUrl);
-
-                mPlayer.prepare(mediaSource);
-                mPlayer.setPlayWhenReady(true);
-            }
         }
 
         return mBinding.getRoot();
     }
 
-    @Override public void onDestroyView() {
-        if(mPlayer != null) mPlayer.release();
-        super.onDestroyView();
+    @Override public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        if(mPlayer != null && savedInstanceState != null) {
+            long pos = savedInstanceState.getLong(PLAYER_POSITION, 0);
+            mPlayer.seekTo(pos);
+            mPlayer.setPlayWhenReady(savedInstanceState.getBoolean(PLAY_WHEN_REDY, true));
+        }
+        super.onViewStateRestored(savedInstanceState);
     }
+
+    @Override public void onStart() {
+        super.onStart();
+        if(Util.SDK_INT > 23) {
+            initializePlayer();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if((Util.SDK_INT <= 23 || mPlayer == null)) {
+            initializePlayer();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(Util.SDK_INT <= 23) {
+            releasePlayer();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if(Util.SDK_INT > 23) {
+            releasePlayer();
+        }
+    }
+
+    @Override public void onSaveInstanceState(@NonNull Bundle outState) {
+        if(mPlayer != null) {
+            outState.putLong(PLAYER_POSITION, mPlayer.getCurrentPosition());
+            outState.putBoolean(PLAY_WHEN_REDY, mPlayer.getPlayWhenReady());
+        }
+        super.onSaveInstanceState(outState);
+    }
+
+    private void initializePlayer() {
+        if(mStep != null) {
+            if(mStep.getVideoURL().equals("")) {
+                mBinding.playerStep.setVisibility(View.GONE);
+                if(!mStep.getThumbnailURL().equals("")) {
+                    Picasso.get().load(mStep.getThumbnailURL()).into(mBinding.ivThumbnail);
+                    mBinding.ivThumbnail.setVisibility(View.VISIBLE);
+                }
+            } else {
+                mPlayer = ExoPlayerFactory.newSimpleInstance(getContext(),
+                        new DefaultTrackSelector(new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter())));
+                mBinding.playerStep.setPlayer(mPlayer);
+                MediaSource mediaSource = new ExtractorMediaSource.Factory(
+                        new DefaultHttpDataSourceFactory("UrlGetter")).createMediaSource(Uri.parse(mStep.getVideoURL()));
+
+                mPlayer.prepare(mediaSource);
+                mPlayer.setPlayWhenReady(true);
+            }
+        }
+    }
+
+    public void releasePlayer() {
+        if(mPlayer != null) mPlayer.release();
+    }
+
 }

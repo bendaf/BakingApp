@@ -1,7 +1,7 @@
 package com.bendaf.bakingapp;
 
-import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -128,22 +128,24 @@ public class MainActivity extends AppCompatActivity {
 
             @Override public void onClick(View view) {
                 Context c = MainActivity.this;
+                SharedPreferences.Editor e = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
+                e.putString(PREFS_RECIPE, new Gson().toJson(mRecipe));
+                e.apply();
+
+
                 if(mAppWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+                    Intent intent = new Intent(MainActivity.this, IngredientsWidgetProvider.class);
+                    intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                    int ids[] = AppWidgetManager.getInstance(getApplication()).getAppWidgetIds(new ComponentName(getApplication(), IngredientsWidgetProvider.class));
+                    intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+                    sendBroadcast(intent);
+
                     Intent startStepListActivity = new Intent(c, StepListActivity.class);
                     startStepListActivity.putExtra(EXTRA_RECIPE, mRecipe);
                     startActivity(startStepListActivity);
                 } else {
-
-                    SharedPreferences.Editor e = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
-                    e.putString(PREFS_RECIPE, new Gson().toJson(mRecipe));
-                    e.apply();
-
                     RemoteViews rw = new RemoteViews(c.getPackageName(),
                             R.layout.ingredients_widget_provider);
-
-                    Intent startMainActivity = new Intent(c, MainActivity.class);
-                    rw.setOnClickPendingIntent(R.id.fl_container,
-                            PendingIntent.getActivity(c, 0, startMainActivity, 0));
 
                     rw.setRemoteAdapter(R.id.lv_ingredients, new Intent(c, IngredientsWidget.class));
                     AppWidgetManager.getInstance(MainActivity.this).updateAppWidget(mAppWidgetId, rw);

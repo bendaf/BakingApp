@@ -40,7 +40,7 @@ public class MainActivityTest {
     @Test
     public void clickOnItems(){
         try {
-            Thread.sleep(1500);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

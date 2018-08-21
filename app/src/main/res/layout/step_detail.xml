@@ -15,10 +15,22 @@
             android:layout_weight="1"
             android:elevation="1dp">
 
-            <com.google.android.exoplayer2.ui.PlayerView
-                android:id="@+id/player_step"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/player_height" />
+                android:layout_height="@dimen/player_height">
+
+                <ImageView
+                    android:id="@+id/iv_thumbnail"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/player_height"
+                    android:visibility="gone"
+                    android:contentDescription="@string/thumbnail_image" />
+
+                <com.google.android.exoplayer2.ui.PlayerView
+                    android:id="@+id/player_step"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/player_height" />
+            </FrameLayout>
 
         </android.support.v7.widget.CardView>
 
