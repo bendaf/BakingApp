@@ -9,7 +9,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
 /**
- * Created by bendaf on 2018. 08. 21. BakingApp.
+ * Created by nenick, copied and improved by bendaf on 2018. 08. 21. from https://stackoverflow.com/a/37339656/3162918.
  */
 
 public class RecyclerViewItemCountAssertion implements ViewAssertion {
